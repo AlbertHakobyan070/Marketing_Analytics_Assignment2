@@ -7,9 +7,7 @@ import os
 
 
 class Bandit(ABC):
-    """
-    Abstract base class for all Bandit algorithms.
-    """
+    """Abstract base class for all Bandit algorithms."""
     ##==== DO NOT REMOVE ANYTHING FROM THIS CLASS ====##
     @abstractmethod
     def __init__(self, p):
@@ -21,18 +19,22 @@ class Bandit(ABC):
 
     @abstractmethod
     def pull(self):
+        """ """
         pass
 
     @abstractmethod
     def update(self):
+        """ """
         pass
 
     @abstractmethod
     def experiment(self):
+        """ """
         pass
 
     @abstractmethod
     def report(self):
+        """ """
         # Storing data in csv for reporting purposes
         # Printing average reward (using f strings to make it informative)
         # Printing average regret (using f strings to make it informative)
@@ -43,15 +45,16 @@ class Bandit(ABC):
 # =============================
 
 class EpsilonGreedy(Bandit):
-    """
-    Epsilon-Greedy algorithm implementation for a Multi-Armed Bandit problem.
-    """
+    """Epsilon-Greedy algorithm implementation for a Multi-Armed Bandit problem."""
+
     def __init__(self, p):
         """
-        Initializing the EpsilonGreedy bandit with true reward probabilities.
-        
-        Parameters:
-        p (list or numpy.array): True mean rewards for each arm.
+        Initialize the EpsilonGreedy bandit with true reward probabilities.
+
+        Parameters
+        ----------
+        p : list or numpy.ndarray
+            True mean rewards for each arm.
         """
         self.p = np.array(p)
         self.num_arms = len(p)
@@ -69,20 +72,21 @@ class EpsilonGreedy(Bandit):
         self.optimal_mean = np.max(self.p)
 
     def __repr__(self):
-        """
-        Returning the string representation of the algorithm for logging.
-        """
+        """Return the string representation of the algorithm for logging."""
         return "EpsilonGreedy"
 
     def pull(self, t):
-        """
-        Pulling an arm using the epsilon-greedy strategy with decaying epsilon.
-        
-        Parameters:
-        t (int): The current trial number (time step).
-        
-        Returns:
-        float: The simulated reward from the environment.
+        """Pull an arm using the epsilon-greedy strategy with decaying epsilon.
+
+        Parameters
+        ----------
+        t : int
+            The current trial number (time step).
+
+        Returns
+        -------
+        float
+            The simulated reward from the environment.
         """
         # Decaying epsilon by 1/t to gradually shift towards exploitation
         epsilon = 1.0 / t
@@ -101,9 +105,7 @@ class EpsilonGreedy(Bandit):
         return x
 
     def update(self):
-        """
-        Updating the estimated mean of the last pulled arm using the received reward.
-        """
+        """Update the estimated mean of the last pulled arm using the received reward."""
         j = self.last_pulled_arm
         x = self.last_reward
         self.N[j] += 1
@@ -112,11 +114,12 @@ class EpsilonGreedy(Bandit):
         self.m_estimate[j] = ((self.N[j] - 1) * self.m_estimate[j] + x) / self.N[j]
 
     def experiment(self, num_trials):
-        """
-        Running the complete experiment loop for the specified number of trials.
-        
-        Parameters:
-        num_trials (int): Total number of times to pull arms.
+        """Run the complete experiment loop for the specified number of trials.
+
+        Parameters
+        ----------
+        num_trials : int
+            Total number of times to pull arms.
         """
         logger.info(f"Starting {self.__repr__()} experiment...")
         for t in range(1, num_trials + 1):
@@ -129,11 +132,12 @@ class EpsilonGreedy(Bandit):
             self.regret_log.append(self.optimal_mean - self.p[self.last_pulled_arm])
 
     def report(self):
-        """
-        Calculating metrics and structuring data into a DataFrame for exporting.
-        
-        Returns:
-        pandas.DataFrame: The logged data of the experiment.
+        """Calculate metrics and structure data into a DataFrame for exporting.
+
+        Returns
+        -------
+        pandas.DataFrame
+            The logged data of the experiment.
         """
         # Calculating cumulative metrics for the final printout
         cum_reward = np.sum(self.rewards_log)
@@ -152,15 +156,16 @@ class EpsilonGreedy(Bandit):
 
 
 class ThompsonSampling(Bandit):
-    """
-    Thompson Sampling algorithm implementation for Gaussian rewards.
-    """
+    """Thompson Sampling algorithm implementation for Gaussian rewards."""
+
     def __init__(self, p):
         """
-        Initializing the ThompsonSampling bandit with true reward means.
-        
-        Parameters:
-        p (list or numpy.array): True mean rewards for each arm.
+        Initialize the ThompsonSampling bandit with true reward means.
+
+        Parameters
+        ----------
+        p : list or numpy.ndarray
+            True mean rewards for each arm.
         """
         self.p = np.array(p)
         self.num_arms = len(p)
@@ -182,17 +187,16 @@ class ThompsonSampling(Bandit):
         self.optimal_mean = np.max(self.p)
 
     def __repr__(self):
-        """
-        Returning the string representation of the algorithm for logging.
-        """
+        """Return the string representation of the algorithm for logging."""
         return "ThompsonSampling"
 
     def pull(self):
-        """
-        Pulling an arm by sampling from the posterior distribution.
-        
-        Returns:
-        float: The simulated reward from the environment.
+        """Pull an arm by sampling from the posterior distribution.
+
+        Returns
+        -------
+        float
+            The simulated reward from the environment.
         """
         # Sampling from posterior distributions to perform Thompson Sampling logic
         samples = np.random.randn(self.num_arms) / np.sqrt(self.lambda_) + self.m
@@ -206,9 +210,7 @@ class ThompsonSampling(Bandit):
         return x
 
     def update(self):
-        """
-        Updating the posterior precision and mean using the latest reward.
-        """
+        """Update the posterior precision and mean using the latest reward."""
         j = self.last_pulled_arm
         x = self.last_reward
 
@@ -218,11 +220,12 @@ class ThompsonSampling(Bandit):
         self.m[j] = (self.tau * self.sum_x[j]) / self.lambda_[j]
 
     def experiment(self, num_trials):
-        """
-        Running the complete experiment loop for the specified number of trials.
-        
-        Parameters:
-        num_trials (int): Total number of times to pull arms.
+        """Run the complete experiment loop for the specified number of trials.
+
+        Parameters
+        ----------
+        num_trials : int
+            Total number of times to pull arms.
         """
         logger.info(f"Starting {self.__repr__()} experiment...")
         for _ in range(num_trials):
@@ -235,11 +238,12 @@ class ThompsonSampling(Bandit):
             self.regret_log.append(self.optimal_mean - self.p[self.last_pulled_arm])
 
     def report(self):
-        """
-        Calculating metrics and structuring data into a DataFrame for exporting.
-        
-        Returns:
-        pandas.DataFrame: The logged data of the experiment.
+        """Calculate metrics and structure data into a DataFrame for exporting.
+
+        Returns
+        -------
+        pandas.DataFrame
+            The logged data of the experiment.
         """
         # Calculating cumulative metrics for the final printout
         cum_reward = np.sum(self.rewards_log)
@@ -262,12 +266,17 @@ class ThompsonSampling(Bandit):
 # ================================
 
 class Visualization():
-    """
-    Class for handling the plotting of experiment results.
-    """
+    """Class for handling the plotting of experiment results."""
+
     def plot1(self, eg_rewards, ts_rewards):
-        """
-        Plotting the cumulative average rewards on linear and log scales.
+        """Plot the cumulative average rewards on linear and log scales.
+
+        Parameters
+        ----------
+        eg_rewards : numpy.ndarray
+            Reward log from the Epsilon-Greedy experiment.
+        ts_rewards : numpy.ndarray
+            Reward log from the Thompson Sampling experiment.
         """
         eg_cum_avg = np.cumsum(eg_rewards) / (np.arange(len(eg_rewards)) + 1)
         ts_cum_avg = np.cumsum(ts_rewards) / (np.arange(len(ts_rewards)) + 1)
@@ -295,8 +304,18 @@ class Visualization():
         plt.show()
 
     def plot2(self, eg_rewards, ts_rewards, eg_regrets, ts_regrets):
-        """
-        Plotting the cumulative rewards and cumulative regrets.
+        """Plot the cumulative rewards and cumulative regrets.
+
+        Parameters
+        ----------
+        eg_rewards : numpy.ndarray
+            Reward log from the Epsilon-Greedy experiment.
+        ts_rewards : numpy.ndarray
+            Reward log from the Thompson Sampling experiment.
+        eg_regrets : list
+            Regret log from the Epsilon-Greedy experiment.
+        ts_regrets : list
+            Regret log from the Thompson Sampling experiment.
         """
         fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
@@ -321,9 +340,7 @@ class Visualization():
 
 
 def comparison():
-    """
-    Main function to execute the bandit algorithms and generate comparisons.
-    """
+    """Main function to execute the bandit algorithms and generate comparisons."""
     BANDIT_REWARD = [1, 2, 3, 4]
     NUM_TRIALS = 20000
 
@@ -350,20 +367,25 @@ if __name__=='__main__':
     comparison()
 
 
-# ==========================================
+# ======================================
 # 3. SUGGEST BETTER IMPLEMENTATION PLAN
-# ==========================================
+# ======================================
 """
-The first improvement I would make is adding `np.random.seed(42)` (or any other seed) inside `comparison()`.
-This way both algorithms run under the same random conditions, which makes the comparison more fair and the results repeatable/reproducible.
-I hope this is not something I should've done in the first place (the instructions of the HW did not ask for reproducibility).
+The first improvement I would make is adding `np.random.seed(42)` inside `comparison()`.
+This makes both algorithms run under the same random conditions, which makes the comparison
+more fair and the results reproducible across runs. Note: reproducibility was not listed
+as a requirement, but would be a natural first improvement.
 
-For performance, the current loop with `.append()` works fine for 20k trials, but if the number of trials gets much larger, 
-switching to pre-allocated `np.zeros(num_trials)` arrays would make it noticeably faster.
+For performance, the current loop with `.append()` works fine for 20k trials, but if the
+number of trials gets much larger, switching to pre-allocated `np.zeros(num_trials)` arrays
+would make it noticeably faster.
 
-Since `report()` already saves a CSV, it would make sense to also save the plots using `plt.savefig()`, that way, everything from one run is stored together in one place.
-In terms of future extensions, UCB could be added as a third subclass without changing anything that already exists, 
-which would be a good way to test if the abstract class structure actually scales. 
+Since `report()` already saves a CSV, it would make sense to also save the plots using
+`plt.savefig()` — that way everything from one run is stored together in one place.
 
-To make testing different setups easier, it would also help to turn `BANDIT_REWARD` and `NUM_TRIALS` into parameters of `comparison()` instead of hardcoding them.
+In terms of future extensions, UCB could be added as a third subclass without changing
+anything that already exists, which would be a good way to test if the abstract class
+structure actually scales. To make testing different setups easier, it would also help
+to turn `BANDIT_REWARD` and `NUM_TRIALS` into parameters of `comparison()` instead of
+hardcoding them.
 """
