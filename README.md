@@ -32,6 +32,27 @@ Thompson Sampling converges to the optimal arm faster and accumulates less
 regret overall. The log-scale plot makes the early-stage exploration difference 
 between the two algorithms more visible.
 
+> ### Better implementation plan:
+The first improvement I would make is adding `np.random.seed(42)` inside `comparison()`.
+This makes both algorithms run under the same random conditions, which makes the comparison
+more fair and the results reproducible across runs. Note: reproducibility was not listed
+as a requirement, but would be a natural first improvement.
+
+For performance, the current loop with `.append()` works fine for 20k trials, but if the
+number of trials gets much larger, switching to pre-allocated `np.zeros(num_trials)` arrays
+would make it noticeably faster.
+
+Since `report()` already saves a CSV, it would make sense to also save the plots using
+`plt.savefig()` — that way everything from one run is stored together in one place.
+
+In terms of future extensions, UCB could be added as a third subclass without changing
+anything that already exists, which would be a good way to test if the abstract class
+structure actually scales. To make testing different setups easier, it would also help
+to turn `BANDIT_REWARD` and `NUM_TRIALS` into parameters of `comparison()` instead of
+hardcoding them.
+
+---
+
 ## Project Structure
 
 ```
