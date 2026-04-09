@@ -59,7 +59,7 @@ hardcoding them.
 ├── Bandit.py                   # Main implementation
 ├── experiment_results.csv      # Logged results (Bandit, Reward, Algorithm)
 ├── requirements.txt
-└── *.png                       # Output plots
+└── *.png                       # The output plots
 ```
 
 ## Setup
