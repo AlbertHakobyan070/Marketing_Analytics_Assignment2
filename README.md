@@ -78,7 +78,3 @@ save results to `experiment_results.csv`, and display the comparison plots.
 - `pandas` — results logging and CSV export  
 - `matplotlib` — visualization  
 - `loguru` — structured logging  
-
----
-
-You can copy this directly into your `README.md`. The plot filenames match exactly what's already in your repo so the images will render automatically on GitHub.
